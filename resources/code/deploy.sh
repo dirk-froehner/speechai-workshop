@@ -39,14 +39,6 @@ echo "SAM_AWS_PROFILE    = "$SAM_AWS_PROFILE
 echo "SAM_STAGE          = "$SAM_STAGE
 echo "SAM_BUCKET_NAME    = "$SAM_BUCKET_NAME
 
-# Prepare environment variables.
-## AWS account details.
-# export SAM_AWS_ACCOUNT_ID=669759248652
-# export SAM_AWS_REGION=eu-central-1
-# export SAM_AWS_PROFILE=burner1
-# export SAM_STAGE=dev
-# export SAM_BUCKET_NAME=$SAM_AWS_ACCOUNT_ID-$SAM_AWS_REGION-sam-cli-source-bucket
-
 # Create artifact bucket for SAM.
 aws s3 mb s3://$SAM_BUCKET_NAME --profile $SAM_AWS_PROFILE --region $SAM_AWS_REGION
 
@@ -56,8 +48,6 @@ export SAM_WORKLOAD_LONG=elvish-electrons-customer-care
 echo "Workload details:"
 echo "SAM_WORKLOAD       = "$SAM_WORKLOAD
 echo "SAM_WORKLOAD_LONG  = "$SAM_WORKLOAD_LONG
-
-# FIXME: For all stages beyond DEV, we need to override some CloudFormation template parameters!
 
 # Execute deploy.sh for each service context.
 if [ "$MODE" = "$DEF_ALL" ]; then

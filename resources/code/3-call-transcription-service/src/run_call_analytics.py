@@ -1,10 +1,24 @@
+# MIT No Attribution
+# 
+# Copyright 2022 Amazon.com, Inc. or its affiliates
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 from operator import truediv
 import os
 import logging
-import json
-import datetime
 import uuid
-import urllib.parse
 import boto3
 import aux
 import aux_paths
@@ -54,7 +68,6 @@ def run_call_analytics(logger, source_bucket_name, source_object_key, destinatio
     logger.debug("output_location: %s", output_location)
 
     # Transcribe job name.
-    # FIXME: Extract the last segment of the source object key or something to have a reasonable job name.
     job_name = "job-" + uuid.uuid4().hex
     logger.debug("job_name: %s", job_name)
 
@@ -98,32 +111,3 @@ def lambda_handler(event, context):
 
 # --------------------------------------------------------------------------------------------------
 
-# Sample event
-"""
-{
-	'version': '0',
-	'id': 'c3ae46a1-ef0c-8788-7e61-b07928a9404b',
-	'detail-type': 'Object Created',
-	'source': 'aws.s3',
-	'account': '699791594599',
-	'time': '2022-04-08T12:08:15Z',
-	'region': 'eu-central-1',
-	'resources': ['arn:aws:s3:::699791594599-eu-central-1-dev-eecc-dl-raw-data'],
-	'detail': {
-		'version': '0',
-		'bucket': {
-			'name': '699791594599-eu-central-1-dev-eecc-dl-raw-data'
-		},
-		'object': {
-			'key': 'contact-center/call-recordings/raw-audio-from-connect/2022/04/07/c6ad7525-4209-4f4c-aca2-f04597dd29b3_2022-04-07T20:02:00Z.wav',
-			'size': 3925804,
-			'etag': 'a98ab103cfaf9c17f7d99b0c7c948239',
-			'sequencer': '00625025AF96AAC698'
-		},
-		'request-id': 'H01FV5YAMSN7YFSY',
-		'requester': '699791594599',
-		'source-ip-address': '3.68.105.196',
-		'reason': 'CopyObject'
-	}
-}
-"""

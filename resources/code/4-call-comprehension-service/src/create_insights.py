@@ -1,9 +1,23 @@
+# MIT No Attribution
+# 
+# Copyright 2022 Amazon.com, Inc. or its affiliates
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 import os
 import logging
 import json
-import datetime
-import uuid
-import urllib.parse
 import boto3
 import aux
 import aux_eventbridge_events
@@ -169,14 +183,6 @@ def comprehend_text(text, role):
         else:
             syntax_tokens[syntax_token["PartOfSpeech"]["Tag"]] = [ syntax_token["Text"] ]
     LOGGER.debug("syntax_tokens: %s", json.dumps(syntax_tokens, indent=4))
-
-    # result["key"] = key
-    # result["text"] = text
-    # result["dominant_language"] = language_code
-    # result["entities"] = entities
-    # result["key_phrases"] = key_phrases
-    # result["sentiment"] = sentiment
-    # result["syntax_tokens"] = syntax_tokens
 
     result = {
         "role": role,

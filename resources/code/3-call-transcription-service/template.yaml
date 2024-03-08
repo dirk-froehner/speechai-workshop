@@ -45,16 +45,6 @@ Parameters:
 
   # Parameters specific to this service.
 
-  # RunCallTranscriptionFunctionName:
-  #   Description: "Name suffix for the RunCallTranscriptionFunction"
-  #   Type: "String"
-  #   Default: "run-call-transcription"
-
-  # RenameTranscriptionResponseFunctionName:
-  #   Description: "Name suffix for the RenameTranscriptionResponseFunction"
-  #   Type: "String"
-  #   Default: "rename-transcription-response"
-
   RunCallAnalyticsFunctionName:
     Description: "Name suffix for the RunCallAnalyticsFunction"
     Type: "String"
@@ -81,42 +71,6 @@ Parameters:
     Description: "Name of the shared DataLakeDataBucket"
     Default: "/dev/eecc/s3/dl-data/name"
 
-  # NewDataLakeRawDataTopicArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared NewDataLakeRawDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-raw-data/arn"
-  # NewDataLakeRawDataTopicName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared NewDataLakeRawDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-raw-data/name"
-
-  # NewDataLakePreparedDataTopicArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared NewDataLakePreparedDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-prepared-data/arn"
-  # NewDataLakePreparedDataTopicName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared NewDataLakePreparedDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-prepared-data/name"
-
-  # DataLakeRawDataBucketArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared DataLakeRawDataBucket"
-  #   Default: "/dev/eecc/s3/dl-raw-data/arn"
-  # DataLakeRawDataBucketName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared DataLakeRawDataBucket"
-  #   Default: "/dev/eecc/s3/dl-raw-data/name"
-
-  # DataLakePreparedDataBucketArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared DataLakePreparedDataBucket"
-  #   Default: "/dev/eecc/s3/dl-prepared-data/arn"
-  # DataLakePreparedDataBucketName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared DataLakePreparedDataBucket"
-  #   Default: "/dev/eecc/s3/dl-prepared-data/name"
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Mappings.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -130,7 +84,7 @@ Globals:
   # Globals for serverless functions.
 
   Function:
-    Runtime: "python3.8"
+    Runtime: "python3.12"
     Timeout: 5
     Tracing: "Active"
     MemorySize: 512
@@ -154,111 +108,6 @@ Globals:
 
 Resources:
 
-  # -------------------------------------------------------------------------------------------------------------------
-  # Lambda functions + roles + log groups for processing "new datalake raw data" events from Amazon SNS.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # Standard transcription functionality.
-
-  # FIXME: Write specific policies for this role so that the Lambda function has only access to what it needs to have.
-  # RunCallTranscriptionFunctionRole:
-  #   Description: "Execution role for RunCallTranscriptionFunction"
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     RoleName: !Sub "${AWS::Region}-${Stage}-${Workload}-${Service}-${RunCallTranscriptionFunctionName}Role"
-  #     AssumeRolePolicyDocument:
-  #       Statement:
-  #       - Effect: "Allow"
-  #         Principal:
-  #           Service: ["lambda.amazonaws.com"]
-  #         Action: "sts:AssumeRole"
-  #     Path: "/"
-  #     ManagedPolicyArns:
-  #       - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  #       - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess"
-  #       - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonTranscribeFullAccess"
-
-  # RunCallTranscriptionFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: !Sub "${Stage}-${Workload}-${Service}-${RunCallTranscriptionFunctionName}"
-  #     CodeUri: "src/"
-  #     Handler: "run_call_transcription.lambda_handler"
-  #     Environment:
-  #       Variables:
-  #         RAW_DATA_BUCKET_ARN:       !Ref DataLakeRawDataBucketArn
-  #         RAW_DATA_BUCKET_NAME:      !Ref DataLakeRawDataBucketName
-  #         PREPARED_DATA_BUCKET_ARN:  !Ref DataLakePreparedDataBucketArn
-  #         PREPARED_DATA_BUCKET_NAME: !Ref DataLakePreparedDataBucketName
-  #     # Policies:
-  #     #   - S3ReadPolicy:
-  #     #       BucketName: !Ref "DataLakeRawDataBucketName"
-  #     #   - S3WritePolicy:
-  #     #       BucketName: !Ref "DataLakePreparedDataBucketName"
-  #     Role: !GetAtt "RunCallTranscriptionFunctionRole.Arn"
-  #     Events:
-  #       MessageFromSnsEvent:
-  #         Type: SNS
-  #         Properties:
-  #           Topic: !Ref "NewDataLakeRawDataTopicArn"
-
-  # RunCallTranscriptionFunctionLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub "/aws/lambda/${RunCallTranscriptionFunction}"
-  #     RetentionInDays: !Ref "LogRetentionInDays"
-  #     # Tags are not supported for AWS::Logs::LogGroup.
-
-  # Rename transcription response file functionality.
-
-  # FIXME: Write specific policies for this role so that the Lambda function has only access to what it needs to have.
-  # RenameTranscriptionResponseFunctionRole:
-  #   Description: "Execution role for RenameTranscriptionResponseFunction"
-  #   Type: AWS::IAM::Role
-  #   Properties:
-  #     RoleName: !Sub "${AWS::Region}-${Stage}-${Workload}-${Service}-${RenameTranscriptionResponseFunctionName}Role"
-  #     AssumeRolePolicyDocument:
-  #       Statement:
-  #       - Effect: "Allow"
-  #         Principal:
-  #           Service: ["lambda.amazonaws.com"]
-  #         Action: "sts:AssumeRole"
-  #     Path: "/"
-  #     ManagedPolicyArns:
-  #       - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-  #       - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess"
-
-  # RenameTranscriptionResponseFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     FunctionName: !Sub "${Stage}-${Workload}-${Service}-${RenameTranscriptionResponseFunctionName}"
-  #     CodeUri: "src/"
-  #     Handler: "rename_transcription_response.lambda_handler"
-  #     Environment:
-  #       Variables:
-  #         RAW_DATA_BUCKET_ARN:       !Ref DataLakeRawDataBucketArn
-  #         RAW_DATA_BUCKET_NAME:      !Ref DataLakeRawDataBucketName
-  #         PREPARED_DATA_BUCKET_ARN:  !Ref DataLakePreparedDataBucketArn
-  #         PREPARED_DATA_BUCKET_NAME: !Ref DataLakePreparedDataBucketName
-  #     # Policies:
-  #     #   - S3ReadPolicy:
-  #     #       BucketName: !Ref "DataLakeRawDataBucketName"
-  #     #   - S3WritePolicy:
-  #     #       BucketName: !Ref "DataLakePreparedDataBucketName"
-  #     Role: !GetAtt "RenameTranscriptionResponseFunctionRole.Arn"
-  #     Events:
-  #       MessageFromSnsEvent:
-  #         Type: SNS
-  #         Properties:
-  #           Topic: !Ref "NewDataLakeRawDataTopicArn"
-
-  # RenameTranscriptionResponseFunctionLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub "/aws/lambda/${RenameTranscriptionResponseFunction}"
-  #     RetentionInDays: !Ref "LogRetentionInDays"
-  #     # Tags are not supported for AWS::Logs::LogGroup.
-
   # Specific call analytics transcription job.
 
   TranscribeDataAccessRole:
@@ -278,7 +127,6 @@ Resources:
 
   # ----
 
-  # FIXME: Write specific policies for this role so that the Lambda function has only access to what it needs to have.
   RunCallAnalyticsFunctionRole:
     Description: "Execution role for RunCallAnalyticsFunction"
     Type: AWS::IAM::Role
@@ -341,7 +189,6 @@ Resources:
 
   # Create a nice HTML table as an overview of the results from the Transcribe call analytics.
 
-  # FIXME: Write specific policies for this role so that the Lambda function has only access to what it needs to have.
   CreateHtmlOverviewFunctionRole:
     Description: "Execution role for CreateHtmlOverviewFunction"
     Type: AWS::IAM::Role

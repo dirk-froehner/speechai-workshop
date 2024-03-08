@@ -1,7 +1,22 @@
+# MIT No Attribution
+# 
+# Copyright 2022 Amazon.com, Inc. or its affiliates
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 import os
 import logging
-import json
-import urllib.parse
 import boto3
 import aux
 import aux_paths
@@ -75,7 +90,6 @@ def lambda_handler(event, context):
     destination_object_key = construct_destination_object_key(LOGGER, copy_source["Key"])
 
     # Copy the new call recording from the CC bucket to the DL bucket.
-    # FIXME: Add some error handling here, e.g. log it somewhere specific or add to a metric.
     response = S3_CLIENT.copy_object(
         CopySource = copy_source,
         Bucket = destination_bucket_name,
@@ -84,33 +98,3 @@ def lambda_handler(event, context):
     LOGGER.debug("response: %s", response)
 
 # --------------------------------------------------------------------------------------------------
-
-# Sample event
-"""
-{
-	'version': '0',
-	'id': 'd7753ed0-c2c1-f33f-4bec-bcb413086465',
-	'detail-type': 'Object Created',
-	'source': 'aws.s3',
-	'account': '699791594599',
-	'time': '2022-04-07T17:14:29Z',
-	'region': 'eu-central-1',
-	'resources': ['arn:aws:s3:::699791594599-eu-central-1-dev-eecc-cc-data'],
-	'detail': {
-		'version': '0',
-		'bucket': {
-			'name': '699791594599-eu-central-1-dev-eecc-cc-data'
-		},
-		'object': {
-			'key': 'connect/699791594599-eu-central-1/CallRecordings/2022/04/07/c6ad7525-4209-4f4c-aca2-f04597dd29b3_20220407T13:14_UTC.wav',
-			'size': 3925804,
-			'etag': 'd74d8891bc8e594c8450a3873012ebb9',
-			'sequencer': '00624F1BF4E9A2F118'
-		},
-		'request-id': '72G46RDDMT9EEAFR',
-		'requester': '699791594599',
-		'source-ip-address': '54.239.6.190',
-		'reason': 'CopyObject'
-	}
-}
-"""

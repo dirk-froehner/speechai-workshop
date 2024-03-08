@@ -1,7 +1,22 @@
+# MIT No Attribution
+# 
+# Copyright 2022 Amazon.com, Inc. or its affiliates
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 import os
 import logging
-import json
-import datetime
 import uuid
 import urllib.parse
 import boto3
@@ -76,9 +91,6 @@ def transcribe_call_recordings(s3_events):
             # The resulting S3 URI of the media object.
             media_uri = "s3://" + source_bucket_name + "/" + unquoted_source_object_key
             LOGGER.debug("S3 URI for the media object: %s", media_uri)
-            
-            # change format from .wav to .txt
-            # formated_source_object_key = unquoted_source_object_key.replace(".wav", ".txt")
 
             # Assemble destination information.
             destination_bucket_name = create_destination_bucket_name()
@@ -90,7 +102,6 @@ def transcribe_call_recordings(s3_events):
             LOGGER.debug("cleansed_destination_object_key: %s", cleansed_destination_object_key)
 
             # Transcribe job name.
-            # FIXME: Extract the last segment of the source object key or something to have a reasonable job name.
             job_name = "job-" + uuid.uuid4().hex
 
             # Invoke Transcribe-API.

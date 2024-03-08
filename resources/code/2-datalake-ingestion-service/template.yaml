@@ -52,15 +52,6 @@ Parameters:
 
   # Parameters from AWS SSM Parameter Store for shared resources.
 
-  # NewContactCenterDataTopicArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared NewContactCenterDataTopic"
-  #   Default: "/dev/eecc/sns/new-contact-center-data/arn"
-  # NewContactCenterDataTopicName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared NewContactCenterDataTopic"
-  #   Default: "/dev/eecc/sns/new-contact-center-data/name"
-
   ContactCenterDataBucketArn:
     Type: "AWS::SSM::Parameter::Value<String>"
     Description: "ARN of the shared ContactCenterDataBucket"
@@ -92,7 +83,7 @@ Globals:
   # Globals for serverless functions.
 
   Function:
-    Runtime: "python3.8"
+    Runtime: "python3.12"
     Timeout: 5
     Tracing: "Active"
     MemorySize: 512

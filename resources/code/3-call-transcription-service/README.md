@@ -1,12 +1,8 @@
 # datalake-ingestion-service
 
-FIXME: Update this README.
-
 Sample service that ingests business events in a data lake.
 
 This service is a sample backoffice service that ingests Lambda events from business services into the raw data tier of a data lake. The Lambda functions in the business services publish their incoming events (that is: the events that trigger their execution) in specific SNS topics. This service chains these SNS topics with Kinesis Firehose delivery streams.
-
-To be done: Transformation of the JSON format of the incoming Lambda events into Parquet.
 
 ## Parameters
 

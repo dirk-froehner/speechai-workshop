@@ -3,8 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS Speech AI Workshop for Utilities. SAM Template for shared resources that have no specific service as their owner.
 
-# FIXME: Add (at least for "dev" stage) delivery status logging.
-
 # --------------------------------------------------------------------------------------------------
 # Parameters.
 # --------------------------------------------------------------------------------------------------
@@ -43,62 +41,17 @@ Parameters:
     Type: "Number"
     Default: 7
 
-  # Parameters specific to this service.
-
-  # NewContactCenterDataTopicName:
-  #   Description: "Name suffix (without prefixes for stage, workload) for the new contact center data topic"
-  #   Type: "String"
-  #   Default: "new-contact-center-data"
-
-  # NewDataLakeRawDataTopicName:
-  #   Description: "Name suffix (without prefixes for stage, workload) for the new data lake raw data topic"
-  #   Type: "String"
-  #   Default: "new-datalake-raw-data"
-
-  # NewDataLakePreparedDataTopicName:
-  #   Description: "Name suffix (without prefixes for stage, workload) for the new data lake prepared data topic"
-  #   Type: "String"
-  #   Default: "new-datalake-prepared-data"
-
-  # NewDataLakeConsumableDataTopicName:
-  #   Description: "Name suffix (without prefixes for stage, workload) for the new data lake consumable data topic"
-  #   Type: "String"
-  #   Default: "new-datalake-consumable-data"
-
   ContactCenterDataBucketName:
     Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for contact center data bucket"
     Type: "String"
     # Reducing the long name suffix to an abbreviation, otherwise we will likely exceed the max length of 63 chars.
-    #Default: "contact-center-data-bucket"
     Default: "cc-data"
 
   DataLakeDataBucketName:
     Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for the data lake data bucket"
     Type: "String"
     # Reducing the long name suffix to an abbreviation, otherwise we will likely exceed the max length of 63 chars.
-    #Default: "datalake-raw-data-bucket"
     Default: "dl-data"
-
-  # DataLakeRawDataBucketName:
-  #   Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for the raw data tier bucket"
-  #   Type: "String"
-  #   # Reducing the long name suffix to an abbreviation, otherwise we will likely exceed the max length of 63 chars.
-  #   #Default: "datalake-raw-data-bucket"
-  #   Default: "dl-raw-data"
-
-  # DataLakePreparedDataBucketName:
-  #   Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for the prepared data tier bucket"
-  #   Type: "String"
-  #   # Reducing the long name suffix to an abbreviation, otherwise we will likely exceed the max length of 63 chars.
-  #   #Default: "datalake-prepared-data-bucket"
-  #   Default: "dl-prepared-data"
-
-  # DataLakeConsumableDataBucketName:
-  #   Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for the consumable data tier bucket"
-  #   Type: "String"
-  #   # Reducing the long name suffix to an abbreviation, otherwise we will likely exceed the max length of 63 chars.
-  #   #Default: "datalake-consumable-data-bucket"
-  #   Default: "dl-consumable-data"
 
   AthenaBucketName:
     Description: "Name suffix (w/o prefixes for acct ID, region, stage, workload) for the Athena bucket"
@@ -120,76 +73,16 @@ Parameters:
 Resources:
 
   # -------------------------------------------------------------------------------------------------------------------
-  # CONTACT CENTER DATA.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # Create an SNS topic used for notifications about new data in the ContactCenterBucket.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # NewContactCenterDataTopic:
-  #   Type: AWS::SNS::Topic
-  #   Properties:
-  #     TopicName: !Sub "${Stage}-${Workload}-${NewContactCenterDataTopicName}"
-  #     # Tags coming in from sam deploy command.
-
-  # NewContactCenterDataTopicPolicy:
-  #   DependsOn: "NewContactCenterDataTopic"
-  #   Type: AWS::SNS::TopicPolicy
-  #   Properties:
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: "Allow"
-  #           Principal:
-  #             Service: "s3.amazonaws.com"
-  #           Action: "SNS:Publish"
-  #           Resource: !Ref "NewContactCenterDataTopic"
-  #           Condition:
-  #             ArnLike:
-  #               aws:SourceArn: !Sub "arn:aws:s3:*:*:*-${ContactCenterDataBucketName}"
-  #             StringEquals:
-  #               aws:SourceAccount: !Sub "${AWS::AccountId}"
-  #     Topics:
-  #       - !Ref "NewContactCenterDataTopic"
-  #     # Tags are not supported for AWS::SNS::TopicPolicy.
-
-  # SSMParameter4NewContactCenterDataTopicArn:
-  #   DependsOn: "NewContactCenterDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewContactCenterDataTopicName}/arn"
-  #     Description: "ARN of the shared NewContactCenterDataTopic"
-  #     Value: !Ref "NewContactCenterDataTopic"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4NewContactCenterDataTopicName:
-  #   DependsOn: "NewContactCenterDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewContactCenterDataTopicName}/name"
-  #     Description: "Name of the shared NewContactCenterDataTopic"
-  #     Value: !GetAtt "NewContactCenterDataTopic.TopicName"
-  #     # Tags coming in from sam deploy command.
-
-  # -------------------------------------------------------------------------------------------------------------------
   # Create an S3 bucket to be used as data storage for Amazon Connect.
   # -------------------------------------------------------------------------------------------------------------------
 
   ContactCenterDataBucket:
-    # DependsOn: "NewContactCenterDataTopicPolicy"
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${AWS::AccountId}-${AWS::Region}-${Stage}-${Workload}-${ContactCenterDataBucketName}"
       NotificationConfiguration:
-        # TopicConfigurations:
-        #   - Event: "s3:ObjectCreated:*"
-        #     Topic: !Ref "NewContactCenterDataTopic"
         EventBridgeConfiguration:
           EventBridgeEnabled: True
-      # Tags coming in from sam deploy command.
 
   SSMParameter4ContactCenterDataBucketName:
     DependsOn: "ContactCenterDataBucket"
@@ -199,7 +92,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${ContactCenterDataBucketName}/name"
       Description: "Name of the shared ContactCenterDataBucket"
       Value: !Ref "ContactCenterDataBucket"
-      # Tags coming in from sam deploy command.
 
   SSMParameter4ContactCenterDataBucketArn:
     DependsOn: "ContactCenterDataBucket"
@@ -209,7 +101,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${ContactCenterDataBucketName}/arn"
       Description: "ARN of the shared ContactCenterDataBucket"
       Value: !GetAtt "ContactCenterDataBucket.Arn"
-      # Tags coming in from sam deploy command.
 
   # -------------------------------------------------------------------------------------------------------------------
   # Create an S3 bucket to be used as data storage for our little data lake.
@@ -223,7 +114,6 @@ Resources:
       NotificationConfiguration:
         EventBridgeConfiguration:
           EventBridgeEnabled: True
-      # Tags coming in from sam deploy command.
 
   SSMParameter4DataLakeDataBucketName:
     DependsOn: "DataLakeDataBucket"
@@ -233,7 +123,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeDataBucketName}/name"
       Description: "Name of the shared DataLakeDataBucket"
       Value: !Ref "DataLakeDataBucket"
-      # Tags coming in from sam deploy command.
 
   SSMParameter4DataLakeDataBucketArn:
     DependsOn: "DataLakeDataBucket"
@@ -243,286 +132,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeDataBucketName}/arn"
       Description: "ARN of the shared DataLakeDataBucket"
       Value: !GetAtt "DataLakeDataBucket.Arn"
-      # Tags coming in from sam deploy command.
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # RAW DATA.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # Create an SNS topic used for notifications about new data in the raw data tier bucket.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # NewDataLakeRawDataTopic:
-  #   Type: AWS::SNS::Topic
-  #   Properties:
-  #     TopicName: !Sub "${Stage}-${Workload}-${NewDataLakeRawDataTopicName}"
-  #     # Tags coming in from sam deploy command.
-
-  # NewDataLakeRawDataTopicPolicy:
-  #   DependsOn: "NewDataLakeRawDataTopic"
-  #   Type: AWS::SNS::TopicPolicy
-  #   Properties:
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: "Allow"
-  #           Principal:
-  #             Service: "s3.amazonaws.com"
-  #           Action: "SNS:Publish"
-  #           Resource: !Ref "NewDataLakeRawDataTopic"
-  #           Condition:
-  #             ArnLike:
-  #               aws:SourceArn: !Sub "arn:aws:s3:*:*:*-${DataLakeRawDataBucketName}"
-  #             StringEquals:
-  #               aws:SourceAccount: !Sub "${AWS::AccountId}"
-  #     Topics:
-  #       - !Ref "NewDataLakeRawDataTopic"
-  #     # Tags are not supported for AWS::SNS::TopicPolicy.
-
-  # SSMParameter4NewDataLakeRawDataTopicArn:
-  #   DependsOn: "NewDataLakeRawDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakeRawDataTopicName}/arn"
-  #     Description: "ARN of the shared NewDataLakeRawDataTopic"
-  #     Value: !Ref "NewDataLakeRawDataTopic"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4NewDataLakeRawDataTopicName:
-  #   DependsOn: "NewDataLakeRawDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakeRawDataTopicName}/name"
-  #     Description: "Name of the shared NewDataLakeRawDataTopic"
-  #     Value: !GetAtt "NewDataLakeRawDataTopic.TopicName"
-  #     # Tags coming in from sam deploy command.
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # Create an S3 bucket that serves as data lake bucket for the raw data tier.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # DataLakeRawDataBucket:
-  #   DependsOn: "NewDataLakeRawDataTopicPolicy"
-  #   Type: AWS::S3::Bucket
-  #   DeletionPolicy: "Delete"
-  #   Properties: 
-  #     BucketName: !Sub "${AWS::AccountId}-${AWS::Region}-${Stage}-${Workload}-${DataLakeRawDataBucketName}"
-  #     NotificationConfiguration:
-  #       TopicConfigurations:
-  #         - Event: "s3:ObjectCreated:*"
-  #           Topic: !Ref "NewDataLakeRawDataTopic"
-  #       EventBridgeConfiguration:
-  #         EventBridgeEnabled: True
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakeRawDataBucketName:
-  #   DependsOn: "DataLakeRawDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeRawDataBucketName}/name"
-  #     Description: "Name of the shared DataLakeRawDataBucket"
-  #     Value: !Ref "DataLakeRawDataBucket"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakeRawDataBucketArn:
-  #   DependsOn: "DataLakeRawDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeRawDataBucketName}/arn"
-  #     Description: "ARN of the shared DataLakeRawDataBucket"
-  #     Value: !GetAtt "DataLakeRawDataBucket.Arn"
-  #     # Tags coming in from sam deploy command.
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # PREPARED DATA.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # -------------------------------------------------------------------------------------------------------------------
-  # Create an SNS topic used for notifications about new data in the prepared data tier bucket.
-  # -------------------------------------------------------------------------------------------------------------------
-
-  # NewDataLakePreparedDataTopic:
-  #   Type: AWS::SNS::Topic
-  #   Properties:
-  #     TopicName: !Sub "${Stage}-${Workload}-${NewDataLakePreparedDataTopicName}"
-  #     # Tags coming in from sam deploy command.
-
-  # NewDataLakePreparedDataTopicPolicy:
-  #   DependsOn: "NewDataLakePreparedDataTopic"
-  #   Type: AWS::SNS::TopicPolicy
-  #   Properties:
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: "Allow"
-  #           Principal:
-  #             Service: "s3.amazonaws.com"
-  #           Action: "SNS:Publish"
-  #           Resource: !Ref "NewDataLakePreparedDataTopic"
-  #           Condition:
-  #             ArnLike:
-  #               aws:SourceArn: !Sub "arn:aws:s3:*:*:*-${DataLakePreparedDataBucketName}"
-  #             StringEquals:
-  #               aws:SourceAccount: !Sub "${AWS::AccountId}"
-  #     Topics:
-  #       - !Ref "NewDataLakePreparedDataTopic"
-  #     # Tags are not supported for AWS::SNS::TopicPolicy.
-
-  # SSMParameter4NewDataLakePreparedDataTopicArn:
-  #   DependsOn: "NewDataLakePreparedDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakePreparedDataTopicName}/arn"
-  #     Description: "ARN of the shared NewDataLakePreparedDataTopic"
-  #     Value: !Ref "NewDataLakePreparedDataTopic"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4NewDataLakePreparedDataTopicName:
-  #   DependsOn: "NewDataLakePreparedDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakePreparedDataTopicName}/name"
-  #     Description: "Name of the shared NewDataLakePreparedDataTopic"
-  #     Value: !GetAtt "NewDataLakePreparedDataTopic.TopicName"
-  #     # Tags coming in from sam deploy command.
-
-  # # -------------------------------------------------------------------------------------------------------------------
-  # # Create an S3 bucket that serves as data lake bucket for the prepared data tier.
-  # # -------------------------------------------------------------------------------------------------------------------
-
-  # DataLakePreparedDataBucket:
-  #   DependsOn: "NewDataLakePreparedDataTopicPolicy"
-  #   Type: AWS::S3::Bucket
-  #   DeletionPolicy: "Delete"
-  #   Properties: 
-  #     BucketName: !Sub "${AWS::AccountId}-${AWS::Region}-${Stage}-${Workload}-${DataLakePreparedDataBucketName}"
-  #     NotificationConfiguration:
-  #       TopicConfigurations:
-  #         - Event: "s3:ObjectCreated:*"
-  #           Topic: !Ref "NewDataLakePreparedDataTopic"
-  #       EventBridgeConfiguration:
-  #         EventBridgeEnabled: True
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakePreparedDataBucketName:
-  #   DependsOn: "DataLakePreparedDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakePreparedDataBucketName}/name"
-  #     Description: "Name of the shared DataLakePreparedDataBucket"
-  #     Value: !Ref "DataLakePreparedDataBucket"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakePreparedDataBucketArn:
-  #   DependsOn: "DataLakePreparedDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakePreparedDataBucketName}/arn"
-  #     Description: "ARN of the shared DataLakePreparedDataBucket"
-  #     Value: !GetAtt "DataLakePreparedDataBucket.Arn"
-  #     # Tags coming in from sam deploy command.
-
-  # # -------------------------------------------------------------------------------------------------------------------
-  # # CONSUMABLE DATA.
-  # # -------------------------------------------------------------------------------------------------------------------
-
-  # # -------------------------------------------------------------------------------------------------------------------
-  # # Create an SNS topic used for notifications about new data in the consumable data tier bucket.
-  # # -------------------------------------------------------------------------------------------------------------------
-
-  # NewDataLakeConsumableDataTopic:
-  #   Type: AWS::SNS::Topic
-  #   Properties:
-  #     TopicName: !Sub "${Stage}-${Workload}-${NewDataLakeConsumableDataTopicName}"
-  #     # Tags coming in from sam deploy command.
-
-  # NewDataLakeConsumableDataTopicPolicy:
-  #   DependsOn: "NewDataLakeConsumableDataTopic"
-  #   Type: AWS::SNS::TopicPolicy
-  #   Properties:
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: "Allow"
-  #           Principal:
-  #             Service: "s3.amazonaws.com"
-  #           Action: "SNS:Publish"
-  #           Resource: !Ref "NewDataLakeConsumableDataTopic"
-  #           Condition:
-  #             ArnLike:
-  #               aws:SourceArn: !Sub "arn:aws:s3:*:*:*-${DataLakeConsumableDataBucketName}"
-  #             StringEquals:
-  #               aws:SourceAccount: !Sub "${AWS::AccountId}"
-  #     Topics:
-  #       - !Ref "NewDataLakeConsumableDataTopic"
-  #     # Tags are not supported for AWS::SNS::TopicPolicy.
-
-  # SSMParameter4NewDataLakeConsumableDataTopicArn:
-  #   DependsOn: "NewDataLakeConsumableDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakeConsumableDataTopicName}/arn"
-  #     Description: "ARN of the shared NewDataLakeConsumableDataTopic"
-  #     Value: !Ref "NewDataLakeConsumableDataTopic"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4NewDataLakeConsumableDataTopicName:
-  #   DependsOn: "NewDataLakeConsumableDataTopic"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/sns/${NewDataLakeConsumableDataTopicName}/name"
-  #     Description: "Name of the shared NewDataLakeConsumableDataTopic"
-  #     Value: !GetAtt "NewDataLakeConsumableDataTopic.TopicName"
-  #     # Tags coming in from sam deploy command.
-
-  # # -------------------------------------------------------------------------------------------------------------------
-  # # Create an S3 bucket that serves as data lake bucket for the consumable data tier.
-  # # -------------------------------------------------------------------------------------------------------------------
-
-  # DataLakeConsumableDataBucket:
-  #   DependsOn: "NewDataLakeConsumableDataTopicPolicy"
-  #   Type: AWS::S3::Bucket
-  #   DeletionPolicy: "Delete"
-  #   Properties: 
-  #     BucketName: !Sub "${AWS::AccountId}-${AWS::Region}-${Stage}-${Workload}-${DataLakeConsumableDataBucketName}"
-  #     NotificationConfiguration:
-  #       TopicConfigurations:
-  #         - Event: "s3:ObjectCreated:*"
-  #           Topic: !Ref "NewDataLakeConsumableDataTopic"
-  #       EventBridgeConfiguration:
-  #         EventBridgeEnabled: True
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakeConsumableDataBucketName:
-  #   DependsOn: "DataLakeConsumableDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeConsumableDataBucketName}/name"
-  #     Description: "Name of the shared DataLakeConsumableDataBucket"
-  #     Value: !Ref "DataLakeConsumableDataBucket"
-  #     # Tags coming in from sam deploy command.
-
-  # SSMParameter4DataLakeConsumableDataBucketArn:
-  #   DependsOn: "DataLakeConsumableDataBucket"
-  #   Type: "AWS::SSM::Parameter"
-  #   Properties:
-  #     Type: String
-  #     Name: !Sub "/${Stage}/${Workload}/s3/${DataLakeConsumableDataBucketName}/arn"
-  #     Description: "ARN of the shared DataLakeConsumableDataBucket"
-  #     Value: !GetAtt "DataLakeConsumableDataBucket.Arn"
-  #     # Tags coming in from sam deploy command.
 
   # -------------------------------------------------------------------------------------------------------------------
   # Create an S3 bucket that serves as data lake bucket for the consumable data tier.
@@ -542,7 +151,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${AthenaBucketName}/name"
       Description: "Name of the shared AthenaBucket"
       Value: !Ref "AthenaBucket"
-      # Tags coming in from sam deploy command.
 
   SSMParameter4AthenaBucketArn:
     DependsOn: "AthenaBucket"
@@ -552,7 +160,6 @@ Resources:
       Name: !Sub "/${Stage}/${Workload}/s3/${AthenaBucketName}/arn"
       Description: "ARN of the shared AthenaBucket"
       Value: !GetAtt "AthenaBucket.Arn"
-      # Tags coming in from sam deploy command.
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -560,122 +167,6 @@ Resources:
 # ---------------------------------------------------------------------------------------------------------------------
 
 Outputs:
-
-  # Outputs for CONTACT CENTER DATA.
-
-  # NewContactCenterDataTopicArn:
-  #   Description: "ARN of the shared NewContactCenterDataTopic"
-  #   Value: !Ref "NewContactCenterDataTopic"
-  # NewContactCenterDataTopicName:
-  #   Description: "Name of the shared NewContactCenterDataTopic"
-  #   Value: !GetAtt "NewContactCenterDataTopic.TopicName"
-
-  # SSMParameter4NewContactCenterDataTopicArnName:
-  #   Description: "Name of the SSMParameter4NewContactCenterDataTopicArn"
-  #   Value: !Ref "SSMParameter4NewContactCenterDataTopicArn"
-  # SSMParameter4NewContactCenterDataTopicArnType:
-  #   Description: "Type of the SSMParameter4NewContactCenterDataTopicArn"
-  #   Value: !GetAtt "SSMParameter4NewContactCenterDataTopicArn.Type"
-  # SSMParameter4NewContactCenterDataTopicArnValue:
-  #   Description: "Value of the SSMParameter4NewContactCenterDataTopicArn"
-  #   Value: !GetAtt "SSMParameter4NewContactCenterDataTopicArn.Value"
-
-  # SSMParameter4NewContactCenterDataTopicNameName:
-  #   Description: "Name of the SSMParameter4NewContactCenterDataTopicName"
-  #   Value: !Ref "SSMParameter4NewContactCenterDataTopicName"
-  # SSMParameter4NewContactCenterDataTopicNameType:
-  #   Description: "Type of the SSMParameter4NewContactCenterDataTopicName"
-  #   Value: !GetAtt "SSMParameter4NewContactCenterDataTopicName.Type"
-  # SSMParameter4NewContactCenterDataTopicNameValue:
-  #   Description: "Value of the SSMParameter4NewContactCenterDataTopicName"
-  #   Value: !GetAtt "SSMParameter4NewContactCenterDataTopicName.Value"
-
-  # ContactCenterDataBucketName:
-  #   Description: "Name of the shared ContactCenterDataBucket"
-  #   Value: !Ref "ContactCenterDataBucket"
-  # ContactCenterDataBucketArn:
-  #   Description: "ARN of the shared ContactCenterDataBucket"
-  #   Value: !GetAtt "ContactCenterDataBucket.Arn"
-
-  # SSMParameter4ContactCenterDataBucketArnName:
-  #   Description: "Name of the SSMParameter4ContactCenterDataBucketArn"
-  #   Value: !Ref "SSMParameter4ContactCenterDataBucketArn"
-  # SSMParameter4ContactCenterDataBucketArnType:
-  #   Description: "Type of the SSMParameter4ContactCenterDataBucketArn"
-  #   Value: !GetAtt "SSMParameter4ContactCenterDataBucketArn.Type"
-  # SSMParameter4ContactCenterDataBucketArnValue:
-  #   Description: "Value of the SSMParameter4ContactCenterDataBucketArn"
-  #   Value: !GetAtt "SSMParameter4ContactCenterDataBucketArn.Value"
-
-  # SSMParameter4ContactCenterDataBucketNameName:
-  #   Description: "Name of the SSMParameter4ContactCenterDataBucketName"
-  #   Value: !Ref "SSMParameter4ContactCenterDataBucketName"
-  # SSMParameter4ContactCenterDataBucketNameType:
-  #   Description: "Type of the SSMParameter4ContactCenterDataBucketName"
-  #   Value: !GetAtt "SSMParameter4ContactCenterDataBucketName.Type"
-  # SSMParameter4ContactCenterDataBucketNameValue:
-  #   Description: "Value of the SSMParameter4ContactCenterDataBucketName"
-  #   Value: !GetAtt "SSMParameter4ContactCenterDataBucketName.Value"
-
-  # # Outputs for RAW DATA.
-
-  # NewDataLakeRawDataTopicArn:
-  #   Description: "ARN of the shared NewDataLakeRawDataTopic"
-  #   Value: !Ref "NewDataLakeRawDataTopic"
-  # NewDataLakeRawDataTopicName:
-  #   Description: "Name of the shared NewDataLakeRawDataTopic"
-  #   Value: !GetAtt "NewDataLakeRawDataTopic.TopicName"
-
-  # # FIXME: Add outputs for respective SSM params.
-
-  # DataLakeRawDataBucketName:
-  #   Description: "Name of the shared DataLakeRawDataBucket"
-  #   Value: !Ref "DataLakeRawDataBucket"
-  # DataLakeRawDataBucketArn:
-  #   Description: "ARN of the shared DataLakeRawDataBucket"
-  #   Value: !GetAtt "DataLakeRawDataBucket.Arn"
-
-  # # FIXME: Add outputs for respective SSM params.
-
-  # # Outputs for PREPARED DATA.
-
-  # NewDataLakePreparedDataTopicArn:
-  #   Description: "ARN of the shared NewDataLakePreparedDataTopic"
-  #   Value: !Ref "NewDataLakePreparedDataTopic"
-  # NewDataLakePreparedDataTopicName:
-  #   Description: "Name of the shared NewDataLakePreparedDataTopic"
-  #   Value: !GetAtt "NewDataLakePreparedDataTopic.TopicName"
-
-  # # FIXME: Add outputs for respective SSM params.
-
-  # DataLakePreparedDataBucketName:
-  #   Description: "Name of the shared DataLakePreparedDataBucket"
-  #   Value: !Ref "DataLakePreparedDataBucket"
-  # DataLakePreparedDataBucketArn:
-  #   Description: "ARN of the shared DataLakePreparedDataBucket"
-  #   Value: !GetAtt "DataLakePreparedDataBucket.Arn"
-
-  # # FIXME: Add outputs for respective SSM params.
-
-  # # Outputs for CONSUMABLE DATA.
-
-  # NewDataLakeConsumableDataTopicArn:
-  #   Description: "ARN of the shared NewDataLakeConsumableDataTopic"
-  #   Value: !Ref "NewDataLakeConsumableDataTopic"
-  # NewDataLakeConsumableDataTopicName:
-  #   Description: "Name of the shared NewDataLakeConsumableDataTopic"
-  #   Value: !GetAtt "NewDataLakeConsumableDataTopic.TopicName"
-
-  # # FIXME: Add outputs for respective SSM params.
-
-  # DataLakeConsumableDataBucketName:
-  #   Description: "Name of the shared DataLakeConsumableDataBucket"
-  #   Value: !Ref "DataLakeConsumableDataBucket"
-  # DataLakeConsumableDataBucketArn:
-  #   Description: "ARN of the shared DataLakeConsumableDataBucket"
-  #   Value: !GetAtt "DataLakeConsumableDataBucket.Arn"
-
-  # FIXME: Add outputs for respective SSM params.
 
   # Outputs for ATHENA BUCKET
   AthenaBucketName:

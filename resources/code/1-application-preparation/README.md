@@ -18,7 +18,5 @@ export SAM_AWS_PROFILE=<associated AWS access key from .aws/credentials>
 export SAM_AWS_REGION=<region where you want deploy your stack>
 export SAM_STAGE=<stage>
 
-# FIXME: For all stages beyond DEV, we need to override some CloudFormation template parameters!
-
 sam deploy --debug --stack-name $SAM_STAGE-eecc-auxs-prep --capabilities CAPABILITY_IAM --s3-bucket $SAM_BUCKET_NAME --profile $SAM_AWS_PROFILE --region $SAM_AWS_REGION --tags Stage=$SAM_STAGE Workload=eecc Context=auxs Service=prep WorkloadLongName=elfish-electrons-customer-care ContextLongName=auxiliary-service ServiceLongName=application-preparation
 ```

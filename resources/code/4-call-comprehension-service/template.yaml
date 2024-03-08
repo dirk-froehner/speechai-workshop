@@ -59,33 +59,6 @@ Parameters:
     Description: "Name of the shared DataLakeDataBucket"
     Default: "/dev/eecc/s3/dl-data/name"
 
-  # DataLakePreparedDataBucketArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared DataLakePreparedDataBucket"
-  #   Default: "/dev/eecc/s3/dl-prepared-data/arn"
-  # DataLakePreparedDataBucketName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared DataLakePreparedDataBucket"
-  #   Default: "/dev/eecc/s3/dl-prepared-data/name"
-
-  # DataLakeConsumableDataBucketArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared DataLakeConsumableDataBucket"
-  #   Default: "/dev/eecc/s3/dl-consumable-data/arn"
-  # DataLakeConsumableDataBucketName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared DataLakeConsumableDataBucket"
-  #   Default: "/dev/eecc/s3/dl-consumable-data/name"
-
-  # NewDataLakePreparedDataTopicArn:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "ARN of the shared NewDataLakePreparedDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-prepared-data/arn"
-  # NewDataLakePreparedDataTopicName:
-  #   Type: "AWS::SSM::Parameter::Value<String>"
-  #   Description: "Name of the shared NewDataLakePreparedDataTopic"
-  #   Default: "/dev/eecc/sns/new-datalake-prepared-data/name"
-
   AthenaBucketArn:
     Type: "AWS::SSM::Parameter::Value<String>"
     Description: "ARN of the shared AthenaBucket"
@@ -109,7 +82,7 @@ Globals:
   # Globals for serverless functions.
 
   Function:
-    Runtime: "python3.8"
+    Runtime: "python3.12"
     Timeout: 5
     Tracing: "Active"
     MemorySize: 512
@@ -137,7 +110,6 @@ Resources:
   # Lambda functions + roles + log groups for processing "new datalake prepared data" events from Amazon SNS.
   # -------------------------------------------------------------------------------------------------------------------
 
-  # FIXME: Write specific policies for this role so that the Lambda function has only access to what it needs to have.
   CreateInsightsFunctionRole:
     Description: "Execution role for CreateInsightsFunction"
     Type: AWS::IAM::Role
@@ -163,10 +135,6 @@ Resources:
       Handler: "create_insights.lambda_handler"
       Role: !GetAtt "CreateInsightsFunctionRole.Arn"
       Events:
-        # MessageFromNewDataLakePreparedDataTopicEvent:
-        #   Type: SNS
-        #   Properties:
-        #     Topic: !Ref "NewDataLakePreparedDataTopicArn"
         Trigger:
           Type: EventBridgeRule
           Properties:
@@ -193,14 +161,6 @@ Resources:
   # Glue: Database + Crawler
   # -------------------------------------------------------------------------------------------------------------------
 
-  # CreateSentimentAnalysisDatabase:
-  #   Type: AWS::Glue::Database
-  #   Properties:
-  #     CatalogId: !Ref AWS::AccountId
-  #     DatabaseInput:
-  #       Name: "sentiment-analysis-database"
-  #       Description: Sentiment Analysis Database
-
   CreateGlueCrawlerRole:
     Description: "Execution role for SentimentAnalysisCrawler"
     Type: AWS::IAM::Role
@@ -216,16 +176,6 @@ Resources:
       ManagedPolicyArns:
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess"
         - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSGlueServiceRole"
-
-  # CreateSentimentAnalysisCrawler:
-  #   Type: AWS::Glue::Crawler
-  #   Properties:
-  #     Name: "SentimentAnalysisCrawler"
-  #     Role: !GetAtt "CreateGlueCrawlerRole.Arn"
-  #     DatabaseName: !Ref CreateSentimentAnalysisDatabase
-  #     Targets: 
-  #       S3Targets:
-  #       - Path: !Ref DataLakeDataBucketName
 
   # -------------------------------------------------------------------------------------------------------------------
   # Athena Workgroup

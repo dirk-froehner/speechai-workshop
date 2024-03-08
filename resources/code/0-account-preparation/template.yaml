@@ -66,8 +66,6 @@ Resources:
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
-      # Not sure yet how meaningful those tags are for the account preparation resources.
-      # Tags coming in from sam deploy command.
 
   DummyApiKey:
     Type: AWS::ApiGateway::ApiKey
@@ -80,8 +78,6 @@ Resources:
       # StageKeys: 
       #   - StageKey
       Value: "API Key value should be at least 20 characters"
-      # Not sure yet how meaningful those tags are for the account preparation resources.
-      # Tags coming in from sam deploy command.
 
   # Check the documentation regarding a necessary dependency on another API GW resource:
   # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-account.html

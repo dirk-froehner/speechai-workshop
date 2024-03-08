@@ -14,9 +14,6 @@ echo "Workload details:"
 echo "SAM_WORKLOAD       = "$SAM_WORKLOAD
 echo "SAM_WORKLOAD_LONG  = "$SAM_WORKLOAD_LONG
 
-# FIXME: For all stages beyond DEV, we need to override some CloudFormation template parameters!
-# E.g. LogLevel, LogRetentionInDays.
-
 # Environment variables specific to this service.
 export SAM_CONTEXT=auxs
 export SAM_SERVICE=acct
